@@ -10,18 +10,19 @@ from SFD.bbox import *
 import torch
 import cv2
 import glob
+from joblib import Parallel, delayed
 
 # indices_file = open("../../../ssd2/insta10YearsChallenge/anns/ids_filtered_by_metadata.csv","r")
 images_path = "../../../hd/datasets/insta10YearsChallenge/data/"
 detections_results_path = "../../../hd/datasets/insta10YearsChallenge/face_detections_rejected/"
 cropped_faces_path = "../../../hd/datasets/insta10YearsChallenge/faces_img_young/"
-accepted_images_file = open("../../../hd/datasets/insta10YearsChallenge/anns/accepted.csv", "w")
 
 input_size = 512  # 640 # Multiscale approach, can try different sizes
 net = 's3fd'
 model = '../SFD/data/s3fd_convert.pth'
 threshold = 0.5  # 0.5
 iou_threshold = 0  # 0.3
+batch_size = 16
 
 
 def resize_image(img, size):
@@ -37,7 +38,7 @@ def resize_image(img, size):
     return img
 
 
-def save_result(img, bboxlist, accepted):
+def save_result(filename, img, bboxlist, accepted):
     img_draw = img.copy()
     for b in bboxlist:
         x1, y1, x2, y2, s = b
@@ -55,13 +56,13 @@ net.load_state_dict(torch.load(model))
 net.cuda()
 net.eval()
 
-i = 0
-# for filename in indices_file:
-print("Infering")
-for filename in glob.glob(images_path + "/*.jpg"):
 
-    i += 1
-    if i % 1 == 0: print(i)
+
+print("Infering")
+
+
+def run_net(filename):
+
     img = cv2.imread(filename)
     img = resize_image(img, input_size)
     bboxlist = detect.detect(net, img)
@@ -77,8 +78,8 @@ for filename in glob.glob(images_path + "/*.jpg"):
     # Discard image if there are not 2 faces, or if there are more
     if len(thresholded_bboxlist) != 2:
         accepted = False
-        save_result(img, thresholded_bboxlist, accepted)
-        continue
+        save_result(filename, img, thresholded_bboxlist, accepted)
+        return
 
     # Discard image if one of the bb is too small
     size_threshold = 512.0/5
@@ -90,7 +91,7 @@ for filename in glob.glob(images_path + "/*.jpg"):
     if size_discarding:
         accepted = False
         save_result(img, thresholded_bboxlist, accepted)
-        continue
+        return
 
     # Identify left/right detections
     elif thresholded_bboxlist[0][0] < thresholded_bboxlist[1][0] and thresholded_bboxlist[0][2] < \
@@ -104,7 +105,7 @@ for filename in glob.glob(images_path + "/*.jpg"):
     else:
         accepted = False
         save_result(img, thresholded_bboxlist, accepted)
-        continue
+        return
 
     # Check that one detection is at left and the other at right and separation between detections
     left_face_center = left_face[0] + (left_face[2] - left_face[0]) / 2
@@ -113,11 +114,10 @@ for filename in glob.glob(images_path + "/*.jpg"):
     if left_face[2] -  right_face[0] < min_separation or left_face[2] > img.shape[1] / 2 or right_face[2] < img.shape[1] / 2:
         accepted = False
         save_result(img, thresholded_bboxlist, accepted)
-        continue
+        return
 
     accepted = True
-    # Write idx to file
-    accepted_images_file.write(filename.split('/')[-1].strip('.jpg') + '\n')
+
     # Save image with detections
     save_result(img, thresholded_bboxlist, accepted)
     # Saved cropped faces
@@ -133,6 +133,8 @@ for filename in glob.glob(images_path + "/*.jpg"):
     except:
         print("Image ommited because of padding error")
 
-# accepted_images_file.close()
+
+Parallel(n_jobs=12)(delayed(run_net)(file) for filename in glob.glob(images_path + "/*.jpg"))
+
 print("DONE")
 
