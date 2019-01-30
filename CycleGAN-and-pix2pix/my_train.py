@@ -9,17 +9,22 @@ if __name__ == '__main__':
     opt = TrainOptions().parse()   # get training options
 
     # change default configuration
-    opt.dataroot = '/home/raulgomez/datasets/insta10YearsChallenge/splits' # path to images (should have subfolders trainA, trainB, valA, valB, etc)
-    opt.name = 'rejuvenating_pix2pix' # name of the experiment. It decides where to store samples and models
+    opt.dataroot = '/home/raulgomez/datasets/insta10YearsChallenge/splits_dlib' # path to images (should have subfolders trainA, trainB, valA, valB, etc)
+    opt.name = 'rejuvenating_dlib_pix2pix' # name of the experiment. It decides where to store samples and models
     opt.model = 'pix2pix'
     opt.direction = 'BtoA'
     opt.gpu_ids = [0] # gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU
     # opt.ngf = 64  # default=64, # of gen filters in the last conv layer
     # opt.ndf = 64  # default=64, # of discrim filters in the first conv layer
     # opt.netD = 'basic' #  default='basic', 70x70 PatchGAN
-    # opt.netG = 'resnet_9blocks' #  default='resnet_9blocks' specify generator architecture [resnet_9blocks | resnet_6blocks | unet_256 | unet_128]
+
+    opt.netG = 'unet_256' #  default='resnet_9blocks' specify generator architecture [resnet_9blocks | resnet_6blocks | unet_256 | unet_128]
+    # default netG for pix2pix is unet_265!
+
     # opt.n_layers_D = '3' #  default=3  only used if netD==n_layers'
     # opt.norm = 'instance' # default='instance' instance normalization or batch normalization [instance | batch | none]
+    # default norm for pix2pix is batch norm!
+
     # opt.direction = 'BtoA'  # default='BtoA'
     # opt.batch_size = 1  # default=1
     # opt.preprocess = 'resize_and_crop', # default = 'resize_and_crop'

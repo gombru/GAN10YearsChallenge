@@ -14,7 +14,7 @@ from joblib import Parallel, delayed
 
 # indices_file = open("../../../ssd2/insta10YearsChallenge/anns/ids_filtered_by_metadata.csv","r")
 images_path = "../../../hd/datasets/insta10YearsChallenge/data/"
-detections_results_path = "../../../hd/datasets/insta10YearsChallenge/face_detections_rejected/"
+# detections_results_path = "../../../hd/datasets/insta10YearsChallenge/face_detections_rejected/"
 cropped_faces_path = "../../../hd/datasets/insta10YearsChallenge/faces_img_young/"
 
 input_size = 512  # 640 # Multiscale approach, can try different sizes
@@ -22,6 +22,7 @@ net = 's3fd'
 model = '../SFD/data/s3fd_convert.pth'
 threshold = 0.5  # 0.5
 iou_threshold = 0  # 0.3
+
 batch_size = 16
 
 
@@ -38,16 +39,16 @@ def resize_image(img, size):
     return img
 
 
-def save_result(filename, img, bboxlist, accepted):
-    img_draw = img.copy()
-    for b in bboxlist:
-        x1, y1, x2, y2, s = b
-        cv2.rectangle(img_draw, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 1)
-    folder = detections_results_path
-    if accepted:
-        folder = folder.replace('rejected', 'accepted')
-        print(folder)
-    cv2.imwrite(folder + filename.split('.')[-2].split('/')[-1] + '.jpg', img_draw)
+# def save_result(filename, img, bboxlist, accepted):
+#     img_draw = img.copy()
+#     for b in bboxlist:
+#         x1, y1, x2, y2, s = b
+#         cv2.rectangle(img_draw, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 1)
+#     folder = detections_results_path
+#     if accepted:
+#         folder = folder.replace('rejected', 'accepted')
+#         print(folder)
+#     cv2.imwrite(folder + filename.split('.')[-2].split('/')[-1] + '.jpg', img_draw)
 
 
 print("Loading Net")
@@ -60,12 +61,20 @@ net.eval()
 
 print("Infering")
 
+images_paths = []
+for filename in glob.glob(images_path + "/*.jpg"):
+    images_paths.append(filename)
 
-def run_net(filename):
+i = 0
+while True:
+
+    print i
+    if i > len(images_paths): break
+
 
     img = cv2.imread(filename)
     img = resize_image(img, input_size)
-    bboxlist = detect.detect(net, img)
+    bboxlist = detect.detect_batch(net, images)
     keep = nms(bboxlist, threshold)
     bboxlist = bboxlist[keep, :]
 
@@ -78,8 +87,8 @@ def run_net(filename):
     # Discard image if there are not 2 faces, or if there are more
     if len(thresholded_bboxlist) != 2:
         accepted = False
-        save_result(filename, img, thresholded_bboxlist, accepted)
-        return
+        # save_result(filename, img, thresholded_bboxlist, accepted)
+        continue
 
     # Discard image if one of the bb is too small
     size_threshold = 512.0/5
@@ -90,8 +99,8 @@ def run_net(filename):
             break
     if size_discarding:
         accepted = False
-        save_result(img, thresholded_bboxlist, accepted)
-        return
+        # save_result(img, thresholded_bboxlist, accepted)
+        continue
 
     # Identify left/right detections
     elif thresholded_bboxlist[0][0] < thresholded_bboxlist[1][0] and thresholded_bboxlist[0][2] < \
@@ -104,8 +113,8 @@ def run_net(filename):
         right_face = thresholded_bboxlist[0]
     else:
         accepted = False
-        save_result(img, thresholded_bboxlist, accepted)
-        return
+        # save_result(img, thresholded_bboxlist, accepted)
+        continue
 
     # Check that one detection is at left and the other at right and separation between detections
     left_face_center = left_face[0] + (left_face[2] - left_face[0]) / 2
@@ -113,13 +122,13 @@ def run_net(filename):
     min_separation = img.shape[1] * 0.15
     if left_face[2] -  right_face[0] < min_separation or left_face[2] > img.shape[1] / 2 or right_face[2] < img.shape[1] / 2:
         accepted = False
-        save_result(img, thresholded_bboxlist, accepted)
-        return
+        # save_result(img, thresholded_bboxlist, accepted)
+        continue
 
     accepted = True
 
     # Save image with detections
-    save_result(img, thresholded_bboxlist, accepted)
+    # save_result(img, thresholded_bboxlist, accepted)
     # Saved cropped faces
     padding_lf_h = (left_face[2] - left_face[0]) * 0.1
     padding_rf_h = (right_face[2] - right_face[0]) * 0.1
@@ -133,8 +142,8 @@ def run_net(filename):
     except:
         print("Image ommited because of padding error")
 
+    i+=batch_size
 
-Parallel(n_jobs=12)(delayed(run_net)(file) for filename in glob.glob(images_path + "/*.jpg"))
 
 print("DONE")
 

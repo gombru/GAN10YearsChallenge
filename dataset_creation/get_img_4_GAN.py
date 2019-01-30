@@ -5,9 +5,9 @@ from joblib import Parallel, delayed
 import os
 
 
-faces_a = "/home/raulgomez/datasets/insta10YearsChallenge/faces_img_young/"
-faces_b = "/home/raulgomez/datasets/insta10YearsChallenge/faces_img_old/"
-out_dir = "/home/raulgomez/datasets/insta10YearsChallenge/faces_img_young_old/"
+faces_a = "/home/raulgomez/datasets/insta10YearsChallenge/faces_img_young_dlibFiltered_aligned/"
+faces_b = "/home/raulgomez/datasets/insta10YearsChallenge/faces_img_old_dlibFiltered_aligned/"
+out_dir = "/home/raulgomez/datasets/insta10YearsChallenge/faces_img_young_old_dlib_aligned/"
 
 out_size = 286
 
@@ -30,5 +30,5 @@ def resize(path):
 
 if not os.path.exists(out_dir):
     os.makedirs(out_dir)
-Parallel(n_jobs=12)(delayed(resize)(file) for file in glob.glob(faces_a + "/*.jpg"))
+Parallel(n_jobs=8)(delayed(resize)(file) for file in glob.glob(faces_a + "/*.jpg"))
 print("DONE")

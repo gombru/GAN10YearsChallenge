@@ -2,8 +2,8 @@ import glob
 import random
 from shutil import copyfile
 
-img_dir = "/home/raulgomez/datasets/insta10YearsChallenge/faces_img_young_old/"
-out_dir = "/home/raulgomez/datasets/insta10YearsChallenge/splits/"
+img_dir = "/home/raulgomez/datasets/insta10YearsChallenge/faces_img_young_old_dlib_aligned/"
+out_dir = "/home/raulgomez/datasets/insta10YearsChallenge/splits_dlib_aligned/"
 
 num_test = 200
 num_val = 200
