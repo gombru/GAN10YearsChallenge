@@ -1,3 +1,4 @@
+
 """General-purpose test script for image-to-image translation.
 
 Once you have trained your model with train.py, you can use this script to test the model.
@@ -37,16 +38,18 @@ from util import html
 if __name__ == '__main__':
     opt = TestOptions().parse()  # get test options
 
-    opt.dataroot = '/home/raulgomez/datasets/insta10YearsChallenge/splits_dlib'
-    opt.name = 'rejuvenating_dlib18K_pix2pix'
+    opt.dataroot = '/home/Imatge/hd/datasets/insta10YearsChallenge/splits_dlib_aligned'
+    opt.name = 'rejuvenating_dlib_algined_21k_pix2pix_lrfixed25then100'
     opt.model = 'pix2pix'
-    opt.direction = 'BtoA'
-    opt.results_dir = '/home/raulgomez/datasets/insta10YearsChallenge/results/'
+    opt.direction = 'BtoA' # A is younger
+    opt.results_dir = '/home/Imatge/hd/datasets/insta10YearsChallenge/results/'
     opt.netG = 'unet_256'
     opt.dataset_mode = 'aligned'
     opt.norm = 'batch'
     opt.num_test = 200
-    opt.epoch = '90' #'latest'
+    opt.epoch = '100' # latest
+    opt.gpu_ids = [3] # gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU
+
 
     # hard-code some parameters for test
     opt.num_threads = 1   # test code only supports num_threads = 1

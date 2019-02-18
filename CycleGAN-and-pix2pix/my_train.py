@@ -9,14 +9,15 @@ if __name__ == '__main__':
     opt = TrainOptions().parse()   # get training options
 
     # change default configuration
-    opt.dataroot = '/home/raulgomez/datasets/insta10YearsChallenge/splits_dlib' # path to images (should have subfolders trainA, trainB, valA, valB, etc)
-    opt.name = 'rejuvenating_dlib_pix2pix' # name of the experiment. It decides where to store samples and models
+    opt.dataroot = '/home/Imatge/hd/datasets/insta10YearsChallenge/splits_dlib_aligned' # path to images (should have subfolders trainA, trainB, valA, valB, etc)
+    opt.name = 'rejuvenating_dlib_algined_21k_pix2pix_lrfixed25then100' # name of the experiment. It decides where to store samples and models
     opt.model = 'pix2pix'
     opt.direction = 'BtoA'
-    opt.gpu_ids = [0] # gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU
+    opt.gpu_ids = [3] # gpu ids: e.g. 0  0,1,2, 0,2. use -1 for CPU
     # opt.ngf = 64  # default=64, # of gen filters in the last conv layer
     # opt.ndf = 64  # default=64, # of discrim filters in the first conv layer
     # opt.netD = 'basic' #  default='basic', 70x70 PatchGAN
+    opt.display_id = 5
 
     opt.netG = 'unet_256' #  default='resnet_9blocks' specify generator architecture [resnet_9blocks | resnet_6blocks | unet_256 | unet_128]
     # default netG for pix2pix is unet_265!
@@ -31,7 +32,7 @@ if __name__ == '__main__':
     # opt.no_flip  # if specified, do not flip the images for data augmentation
 
     # change default learning rate
-    opt.niter = 100 # # of iter (epochs) at starting learning rate
+    opt.niter = 25 # # of iter (epochs) at starting learning rate
     opt.niter_decay = 100  # of iter (epochs) to linearly decay learning rate to zero')
     opt.beta1 = 0.5  # momentum term of adam
     opt.lr = 0.0002  #  initial learning rate for adam')
